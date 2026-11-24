@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { plural, useBrief } from '../brief'
 import { pains, serviceName } from '../content'
+import Icon from './Icon'
 import SystemMap from './SystemMap'
 
 export default function Hero() {
@@ -34,26 +35,33 @@ export default function Hero() {
       </div>
 
       <div className="corner mt-10 bg-rule p-px lg:mt-11" style={{ '--cut': '2.25rem' } as React.CSSProperties}>
-        <div className="corner grid bg-ink-2 xl:grid-cols-[20rem_minmax(0,1fr)]">
+        <div className="corner grid bg-ink-2 xl:grid-cols-[23rem_minmax(0,1fr)]">
           <div className="flex flex-col border-rule xl:border-r">
             <div className="px-4 pt-6 pb-4 sm:px-6 xl:px-4">
               <h2 className="text-xl leading-tight">Що заважає бізнесу?</h2>
               <p className="mt-1.5 text-[0.95rem] text-muted">Оберіть одне або кілька, і схема збереться сама.</p>
             </div>
-            <div className="grid grow content-start border-t border-rule sm:grid-cols-2 xl:grid-cols-1" role="group" aria-label="Проблеми бізнесу">
+            <div className="grid grow content-start gap-2 px-4 pb-5 sm:grid-cols-2 sm:px-6 xl:grid-cols-1 xl:px-4" role="group" aria-label="Проблеми бізнесу">
               {pains.map((pain) => (
                 <button
                   key={pain.id}
                   type="button"
-                  className="pain sm:px-6 sm:last:col-span-2 xl:px-4 xl:last:col-span-1"
+                  className="tile pain sm:last:col-span-2 xl:last:col-span-1"
                   aria-pressed={isPainActive(pain)}
                   onClick={() => {
                     setLastId(pain.id)
                     togglePain(pain)
                   }}
                 >
-                  <span className="pain-mark" aria-hidden="true" />
-                  {pain.label}
+                  <span className="tile-icon">
+                    <Icon name={pain.id} />
+                  </span>
+                  <span className="grow">{pain.label}</span>
+                  <span className="tick" aria-hidden="true">
+                    <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M2 7.5 5.5 11 12 3.5" pathLength={1} />
+                    </svg>
+                  </span>
                 </button>
               ))}
             </div>

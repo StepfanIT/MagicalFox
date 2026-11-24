@@ -1,3 +1,5 @@
+import type { IconName } from './components/Icon'
+
 export type ServiceId =
   | 'landing' | 'site' | 'shop'
   | 'bot' | 'automation' | 'parser' | 'integrations'
@@ -51,7 +53,7 @@ export const securityServices: Service[] = [
 export const allServices: Service[] = [...serviceGroups.flatMap((g) => g.services), ...securityServices]
 export const serviceName = (id: ServiceId) => allServices.find((s) => s.id === id)!.name
 
-export type Pain = { id: string; label: string; services: ServiceId[]; steps: [string, string, string] }
+export type Pain = { id: IconName; label: string; services: ServiceId[]; steps: [string, string, string] }
 
 export const pains: Pain[] = [
   {
@@ -142,35 +144,46 @@ export const outputNodes: MapNode[] = [
 ]
 export const perimeterServices = securityServices.map((s) => s.id)
 
-export const attackSteps = [
+export const attackSteps: {
+  title: string
+  text: string
+  defence: string
+  icon: IconName
+  stopped: string
+}[] = [
   {
     title: 'Фішинговий лист',
     text: 'Менеджер відкриває «рахунок від постачальника»',
     defence: 'Навчена команда',
+    icon: 'team',
     stopped: 'Менеджер упізнав підробку й повідомив. Збитків немає.',
   },
   {
     title: 'Вкрадений пароль',
     text: 'Він підходить і до пошти, і до робочих сервісів',
     defence: 'Другий фактор входу',
+    icon: 'phone',
     stopped: 'Пароль вкрали, але без коду з телефона він не спрацював. Міняєте пароль і працюєте далі.',
   },
   {
     title: 'Вхід у CRM',
     text: 'Чужа людина бачить клієнтів та угоди',
     defence: 'Права за ролями',
+    icon: 'roles',
     stopped: 'У CRM увійшли, але цей акаунт не може вивантажити базу. Побачили лише кілька карток.',
   },
   {
     title: 'Копія бази',
     text: 'Контакти й умови вивантажують назовні',
     defence: 'Моніторинг',
+    icon: 'eye',
     stopped: 'Частину даних скопіювали. Спрацювала тривога, доступ закрили до шифрування.',
   },
   {
     title: 'Шифрування і викуп',
     text: 'Робота стоїть, за дані вимагають гроші',
     defence: 'Резервна копія',
+    icon: 'backup',
     stopped: 'Базу викрали й зашифрували, але робота відновлюється з копії без викупу.',
   },
 ]

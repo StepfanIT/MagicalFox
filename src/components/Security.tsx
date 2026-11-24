@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { attackLost, attackSteps, reportRows, securityServices } from '../content'
 import AddButton from './AddButton'
+import Icon from './Icon'
 
 export default function Security() {
   const [on, setOn] = useState<boolean[]>(attackSteps.map(() => false))
@@ -56,19 +57,18 @@ export default function Security() {
                     role="switch"
                     aria-checked={on[i]}
                     onClick={() => setOn(on.map((x, j) => (j === i ? !x : x)))}
-                    className={`mt-4 flex min-h-14 w-full items-center justify-between gap-3 border px-3.5 py-2 text-left text-[0.95rem] leading-tight transition-colors ${
-                      on[i] ? 'border-gold text-gold' : 'border-[#4a463f] text-fg hover:border-muted'
-                    }`}
+                    className="tile defence mt-4"
                   >
-                    {step.defence}
-                    <span
-                      aria-hidden="true"
-                      className={`relative mr-1.5 h-4 w-9 flex-none -skew-x-45 border transition-colors ${on[i] ? 'border-gold' : 'border-[#8f8a7f]'}`}
-                    >
-                      <span
-                        className={`absolute top-0.5 bottom-0.5 w-3.5 transition-all duration-200 ${on[i] ? 'left-4.5 bg-gold' : 'left-0.5 bg-[#8f8a7f]'}`}
-                      />
+                    <span className="tile-icon">
+                      <Icon name={step.icon} />
                     </span>
+                    <span className="min-w-0 grow xl:order-last xl:w-full">
+                      <span className="block leading-tight font-medium">{step.defence}</span>
+                      <span className="defence-state" aria-hidden="true">
+                        {!on[i] ? 'Вимкнено' : stoppedHere ? 'Зупиняє атаку' : 'У запасі'}
+                      </span>
+                    </span>
+                    <span className="switch" aria-hidden="true" />
                   </button>
                 </div>
               </li>
