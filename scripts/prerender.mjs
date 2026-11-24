@@ -8,12 +8,13 @@ const env = loadEnv('production', process.cwd(), '')
 const host = process.env.VERCEL_PROJECT_PRODUCTION_URL
 const siteUrl = (env.VITE_SITE_URL || (host ? `https://${host}` : '')).replace(/\/$/, '')
 
+const base = process.env.BASE_PATH || '/'
 const fonts = (await readdir('dist/assets')).filter((f) =>
   /^(geologica-(cyrillic|latin)-shrp|onest-(cyrillic|latin)-wght)/.test(f),
 )
 
 const head = [
-  ...fonts.map((f) => `<link rel="preload" href="/assets/${f}" as="font" type="font/woff2" crossorigin />`),
+  ...fonts.map((f) => `<link rel="preload" href="${base}assets/${f}" as="font" type="font/woff2" crossorigin />`),
   `<meta property="og:image" content="${siteUrl}/og.png" />`,
   '<meta property="og:image:width" content="1200" />',
   '<meta property="og:image:height" content="630" />',
