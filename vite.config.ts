@@ -5,5 +5,6 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   // На GitHub Pages сайт живе в підпапці /MagicalFox/, на власному домені в корені.
   base: process.env.BASE_PATH || '/',
+  server: { proxy: { '/api': 'http://127.0.0.1:3000' } },
   plugins: [react(), tailwindcss()],
 })

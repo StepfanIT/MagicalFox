@@ -10,7 +10,7 @@ type Layout = {
   inputs: Placed[]
   outputs: Placed[]
   perimeter: string
-  captions: { x: number; y: number; text: string; end?: boolean }[]
+  captions: { x: number; y: number; text: string; anchor: 'start' | 'middle' | 'end' }[]
   shield: { x: number; y: number; w: number; size: number }
 }
 
@@ -33,33 +33,35 @@ const desktop: Layout = {
   ],
   perimeter: 'M8 -26H956L992 10V446H44L8 410Z',
   captions: [
-    { x: 40, y: 12, text: 'Звідки приходить' },
-    { x: 960, y: 12, text: 'Що ви отримуєте', end: true },
+    { x: 40, y: 12, text: 'Звідки приходить', anchor: 'start' },
+    { x: 960, y: 12, text: 'Що ви отримуєте', anchor: 'end' },
   ],
   shield: { x: 500, y: 446, w: 168, size: 16 },
 }
 
+// Знак, вузли й підписи стоять симетрично відносно x = 180.
 const mobile: Layout = {
-  viewBox: '0 -26 360 540',
+  viewBox: '0 -32 360 596',
   box: { w: 78, h: 44, cut: 8, label: 14, note: false },
-  mark: { x: 104, y: 200, scale: 0.12 },
+  mark: { x: 103, y: 204, scale: 0.14 },
   inputs: [
-    { x: 14, y: 44, path: 'M53 66V128L106 181V203' },
-    { x: 98, y: 44, path: 'M137 66V172L118 191V216' },
-    { x: 182, y: 44, path: 'M221 66V118L130 209V228' },
-    { x: 266, y: 44, path: 'M305 66V70L142 233V240' },
+    { x: 15, y: 44, path: 'M54 66V150L107 203V212' },
+    { x: 99, y: 44, path: 'M138 66V200L119 219V224' },
+    { x: 183, y: 44, path: 'M222 66V140L131 231V236' },
+    { x: 267, y: 44, path: 'M306 66V80L143 243V248' },
   ],
   outputs: [
-    { x: 14, y: 458, path: 'M165 312V318L53 430V436' },
-    { x: 98, y: 458, path: 'M165 312V346L137 374V436' },
-    { x: 182, y: 458, path: 'M214 250H215L221 256V436' },
-    { x: 266, y: 458, path: 'M228 211H283L305 233V436' },
+    { x: 15, y: 488, path: 'M174 336V342L54 462V466' },
+    { x: 99, y: 488, path: 'M174 336V372L138 408V466' },
+    { x: 183, y: 488, path: 'M234 263H242L250 271V400L222 428V466' },
+    { x: 267, y: 488, path: 'M252 216H285L306 237V466' },
   ],
-  perimeter: 'M4 -20H336L356 0V498H24L4 478Z',
+  perimeter: 'M4 -24H336L356 -4V550H24L4 530Z',
   captions: [
-    { x: 14, y: 8, text: 'Звідки приходить' },
+    { x: 180, y: 8, text: 'Звідки приходить', anchor: 'middle' },
+    { x: 180, y: 530, text: 'Що ви отримуєте', anchor: 'middle' },
   ],
-  shield: { x: 180, y: 498, w: 118, size: 13 },
+  shield: { x: 180, y: 550, w: 118, size: 13 },
 }
 
 function useMotion() {
@@ -185,7 +187,7 @@ function Diagram(props: { layout: Layout; shown: ReadonlySet<ServiceId>; motion:
       </g>
 
       {layout.captions.map((c) => (
-        <text key={c.x + c.text} x={c.x} y={c.y} textAnchor={c.end ? 'end' : 'start'} fontSize={note ? 15 : 12} fill="#8f8a7f">
+        <text key={c.x + c.text} x={c.x} y={c.y} textAnchor={c.anchor} fontSize={note ? 15 : 13} fill="#8f8a7f">
           {c.text}
         </text>
       ))}

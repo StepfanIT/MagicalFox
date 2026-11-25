@@ -2,16 +2,17 @@ import { useState, type FormEvent } from 'react'
 import { useBrief } from '../brief'
 import { contacts } from '../config'
 import { serviceName } from '../content'
+import { directToTelegram, telegramLink } from '../lead'
 import { track } from '../track'
 
-type Status = 'idle' | 'sending' | 'sent' | 'failed'
+type Status = 'idle' | 'sending' | 'sent' | 'failed' | 'handed'
 
 export default function Contact() {
   const { selected, toggleService } = useBrief()
   const [status, setStatus] = useState<Status>('idle')
   const [invalid, setInvalid] = useState(false)
   const [copied, setCopied] = useState(false)
-  const [fallback, setFallback] = useState('')
+  const [leadText, setLeadText] = useState('')
   const services = [...selected]
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -25,8 +26,24 @@ export default function Contact() {
     }
     setInvalid(false)
     setCopied(false)
-    setStatus('sending')
     const brief = services.map(serviceName).join(', ')
+    const text = [
+      data.name && `Імʼя: ${data.name}`,
+      `Контакт: ${data.contact}`,
+      brief && `Схема: ${brief}`,
+      data.message && `Задача: ${data.message}`,
+    ]
+      .filter(Boolean)
+      .join('\n')
+    setLeadText(text)
+    if (data.company) return setStatus('sent')
+    if (directToTelegram) {
+      window.open(telegramLink(text), '_blank', 'noopener')
+      setStatus('handed')
+      track('lead_telegram', { services: services.length })
+      return
+    }
+    setStatus('sending')
     try {
       const response = await fetch('/api/lead', {
         method: 'POST',
@@ -38,16 +55,6 @@ export default function Contact() {
       setStatus('sent')
       track('lead_sent', { services: services.length })
     } catch {
-      setFallback(
-        [
-          data.name && `Імʼя: ${data.name}`,
-          `Контакт: ${data.contact}`,
-          brief && `Схема: ${brief}`,
-          data.message && `Задача: ${data.message}`,
-        ]
-          .filter(Boolean)
-          .join('\n'),
-      )
       setStatus('failed')
       track('lead_failed')
     }
@@ -66,7 +73,7 @@ export default function Contact() {
           <ContactLinks className="mt-8" />
         </div>
 
-        <div className="corner on-dark bg-ink p-5 sm:p-9 lg:col-span-7" style={{ '--cut': '2.25rem' } as React.CSSProperties}>
+        <div data-leads={directToTelegram ? 'telegram' : 'server'} className="corner on-dark bg-ink p-5 sm:p-9 lg:col-span-7" style={{ '--cut': '2.25rem' } as React.CSSProperties}>
           {status === 'sent' ? (
             <div className="py-10" role="status">
               <p className="font-display text-3xl leading-tight">Заявку надіслано</p>
@@ -133,27 +140,31 @@ export default function Contact() {
               <input type="text" name="company" tabIndex={-1} autoComplete="off" aria-hidden="true" className="absolute -left-[9999px]" />
               <div className="flex flex-wrap items-center gap-x-6 gap-y-4 sm:col-span-2">
                 <button type="submit" className="btn" disabled={status === 'sending'}>
-                  {status === 'sending' ? 'Надсилаємо…' : 'Надіслати заявку'}
+                  {status === 'sending' ? 'Надсилаємо…' : directToTelegram ? 'Надіслати в Telegram' : 'Надіслати заявку'}
                 </button>
                 <p className="max-w-[34ch] text-[0.9rem] leading-snug text-muted">
                   Дані використаємо лише для відповіді на цю заявку.
                 </p>
               </div>
-              {status === 'failed' && (
-                <div className="border border-danger p-4 sm:col-span-2" role="alert">
-                  <p>Заявка не надіслалася. Спробуйте ще раз або скопіюйте текст і надішліть його нам напряму.</p>
-                  <pre className="mt-3 font-sans text-[0.95rem] whitespace-pre-wrap text-muted">{fallback}</pre>
+              {(status === 'failed' || status === 'handed') && (
+                <div className={`border p-4 sm:col-span-2 ${status === 'failed' ? 'border-danger' : 'border-gold'}`} role="alert">
+                  <p>
+                    {status === 'failed'
+                      ? 'Заявка не надіслалася. Спробуйте ще раз або надішліть цей текст нам напряму.'
+                      : 'Лишився один крок: натисніть «Надіслати» в Telegram. Якщо він не відкрився, скористайтеся посиланням нижче.'}
+                  </p>
+                  <pre className="mt-3 font-sans text-[0.95rem] whitespace-pre-wrap text-muted">{leadText}</pre>
                   <div className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-2">
                     <button
                       type="button"
                       className="link min-h-11"
                       onClick={() =>
-                        navigator.clipboard.writeText(fallback).then(() => setCopied(true), () => setCopied(false))
+                        navigator.clipboard.writeText(leadText).then(() => setCopied(true), () => setCopied(false))
                       }
                     >
                       {copied ? 'Скопійовано' : 'Скопіювати текст'}
                     </button>
-                    <ContactLinks />
+                    <ContactLinks text={leadText} />
                   </div>
                 </div>
               )}
@@ -165,9 +176,11 @@ export default function Contact() {
   )
 }
 
-export function ContactLinks({ className = '' }: { className?: string }) {
+export function ContactLinks({ className = '', text }: { className?: string; text?: string }) {
+  const { selected } = useBrief()
+  const draft = text ?? (selected.size ? `Доброго дня! Цікавить: ${[...selected].map(serviceName).join(', ')}` : '')
   const items = [
-    contacts.telegram && [`https://t.me/${contacts.telegram}`, `Telegram: @${contacts.telegram}`],
+    contacts.telegram && [telegramLink(draft), `Telegram: @${contacts.telegram}`],
     contacts.phone && [`tel:${contacts.phone}`, contacts.phone],
     contacts.email && [`mailto:${contacts.email}`, contacts.email],
   ].filter((x): x is string[] => Boolean(x))
@@ -176,7 +189,7 @@ export function ContactLinks({ className = '' }: { className?: string }) {
     <ul className={`flex flex-wrap gap-x-7 gap-y-2 ${className}`}>
       {items.map(([href, label]) => (
         <li key={href}>
-          <a href={href} className="link inline-block py-2" onClick={() => track('contact_click', { to: label })}>
+          <a href={href} className="link inline-block py-2" {...(href.startsWith('http') && { target: '_blank', rel: 'noopener' })} onClick={() => track('contact_click', { to: label })}>
             {label}
           </a>
         </li>
